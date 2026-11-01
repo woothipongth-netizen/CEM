@@ -1,0 +1,17 @@
+{
+  "_comment": "หน้าตาเทมเพลต review-motion ออกแบบกับ Claude ตาม docs/09-template-design.md | ค่าที่ใช้ได้ดูใน docs นั้น",
+  "title_style": "shine",
+  "title_position": "top",
+  "caption_style": "rail",
+  "caption_position": "bottom",
+  "transitions": "mixed",
+  "camera_motion": "slow-zoom",
+  "overlays": {
+    "grain": true,
+    "vignette": true,
+    "warm_grade": true
+  },
+  "lower_third": true,
+  "end_card": "brand",
+  "reference": ""
+}

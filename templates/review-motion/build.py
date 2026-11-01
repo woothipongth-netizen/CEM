@@ -18,6 +18,7 @@ grain-overlay, lt-kicker-name, text-shimmer ปรับสีและชื่
 สไตล์ซับยืมจาก identity "anchor" ของ embedded-captions (rail อ่านง่าย คำสำคัญเด้งสีทอง)
 """
 import html
+import os
 import json
 import shutil
 import sys
@@ -26,6 +27,26 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 VENDOR = HERE.parent / "vendor"
 BRAND = json.loads((HERE.parent.parent / "brand.json").read_text())
+
+# หน้าตาเทมเพลต (docs/09-template-design.md) ค่าที่ไม่ได้ใส่ใช้ค่าเริ่มต้นด้านล่าง
+# STYLE_JSON ชี้ไฟล์อื่นได้ (ใช้ตอนทำภาพตัวอย่างใน scripts/style_preview.py)
+STYLE_DEFAULTS = {
+    "title_style": "shine", "title_position": "top", "caption_style": "rail", "caption_position": "bottom",
+    "transitions": "mixed", "camera_motion": "slow-zoom", "lower_third": True, "end_card": "brand",
+    "overlays": {"grain": True, "vignette": True, "warm_grade": True},
+}
+_style_path = Path(os.environ.get("STYLE_JSON", HERE.parent.parent / "style.json"))
+_user_style = json.loads(_style_path.read_text()) if _style_path.exists() else {}
+STYLE = {**STYLE_DEFAULTS, **_user_style,
+         "overlays": {**STYLE_DEFAULTS["overlays"], **_user_style.get("overlays", {})}}
+
+# ชุดทรานสิชัน: (ช็อตทั่วไปสลับกัน, จุดเปลี่ยนหัวข้อ)
+TRANSITION_SETS = {
+    "soft": (["blur", "blur"], "leak"),
+    "mixed": (["blur", "slide"], "leak"),
+    "punchy": (["zoom", "slide"], "flash"),
+    "cut": (["cut", "cut"], "cut"),
+}
 GRAIN = ("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E"
          "%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E"
          "%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")
@@ -73,7 +94,8 @@ def main():
     shot_els, els, js = [], [], []
 
     # ---- ช็อต: วิดีโอแต่ละช็อตอยู่ใน wrapper ที่ใช้ทำทรานสิชัน, ตัววิดีโอทำ Ken Burns ----
-    alt = ["blur", "slide"]
+    alt, section_kind = TRANSITION_SETS.get(STYLE["transitions"], TRANSITION_SETS["mixed"])
+    zoom = {"slow-zoom": 0.08, "subtle": 0.04, "none": 0.0}.get(STYLE["camera_motion"], 0.08)
     for i, s in enumerate(shots):
         at, dur, pad = s["at"], s["dur"], s["head_pad"]
         if i == 0:
@@ -84,11 +106,12 @@ def main():
             f'<div id="sh{i}" class="shot"><video id="v{i}" class="clip" src="shots/{s["file"]}" muted playsinline '
             f'data-start="{v_start}" data-duration="{v_dur}"{media} data-track-index="0"></video></div>')
         zoom_in = i % 2 == 0
-        js.append(f'tl.fromTo("#v{i}", {{scale: {1.0 if zoom_in else 1.08}}}, '
-                  f'{{scale: {1.08 if zoom_in else 1.0}, duration: {v_dur}, ease: "none"}}, {v_start});')
+        if zoom:
+            js.append(f'tl.fromTo("#v{i}", {{scale: {1.0 if zoom_in else 1 + zoom}}}, '
+                      f'{{scale: {1 + zoom if zoom_in else 1.0}, duration: {v_dur}, ease: "none"}}, {v_start});')
         if i == 0:
             continue
-        kind = overrides.get(str(i)) or ("leak" if round(at, 1) in title_starts else alt[i % 2])
+        kind = overrides.get(str(i)) or (section_kind if round(at, 1) in title_starts else alt[i % 2])
         p = min(pad, 0.4)
         if kind == "blur":
             js.append(f'tl.fromTo("#sh{i}", {{opacity: 0, filter: "blur(18px)"}}, '
@@ -142,7 +165,7 @@ def main():
         js.append(f'tl.to("#t{i} .shine", {{yPercent: -110, duration: 0.3, ease: "power2.in"}}, {b - 0.32});')
 
     # ---- ป้ายชื่อ (lower third แบบ lt-kicker-name) ----
-    for i, lt in enumerate(content.get("lower_thirds", [])):
+    for i, lt in enumerate(content.get("lower_thirds", []) if STYLE["lower_third"] else []):
         lt = {"kicker": BRAND["staff_role"], "name": BRAND["staff_name"], **lt}
         a, b = lt["start"], lt["end"]
         els.append(f'<div id="lt{i}" class="lt clip" data-start="{a}" data-duration="{b - a:.2f}" data-track-index="4">'
@@ -166,25 +189,36 @@ def main():
             js.append(f'tl.fromTo("#c{i} em", {{scale: 0.8}}, {{scale: 1, duration: 0.35, ease: "back.out(3)"}}, {a + 0.12});')
         js.append(f'tl.to("#c{i} span", {{opacity: 0, duration: 0.14}}, {b - 0.14});')
 
-    # ---- การ์ดปิดท้าย ----
+    # ---- การ์ดปิดท้าย: brand = ชื่อร้าน + ปุ่ม, cta = ปุ่มอย่างเดียว, none = ไม่มี ----
     ea = end["start"]
-    els.append(f'<div id="endshade" class="clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="9"></div>')
-    els.append(f'<div id="brand" class="end clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="10">'
-               f'<div class="shine" style="font-size: {brand_size(end["brand"])}px">{html.escape(end["brand"])}</div>'
-               f'<div class="end-rule"></div></div>')
-    els.append(f'<div id="cta" class="cta clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="11">'
-               f'<span>{html.escape(end["cta"])}</span></div>')
-    js.append(f'tl.fromTo("#endshade", {{opacity: 0}}, {{opacity: 1, duration: 0.7}}, {ea});')
-    js.append(f'tl.fromTo("#brand .shine", {{opacity: 0, scale: 1.35, filter: "blur(12px)"}}, '
-              f'{{opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.9, ease: "expo.out"}}, {ea + 0.2});')
-    js.append(f'tl.fromTo("#brand .end-rule", {{scaleX: 0}}, {{scaleX: 1, duration: 0.7, ease: "power4.out"}}, {ea + 0.6});')
-    js.append(f'tl.fromTo("#brand .shine", {{backgroundPosition: "120% 0"}}, {{backgroundPosition: "-20% 0", duration: 1.2, ease: "power2.inOut"}}, {ea + 1.0});')
-    js.append(f'tl.fromTo("#cta span", {{opacity: 0, scale: 0.7}}, {{opacity: 1, scale: 1, duration: 0.55, ease: "back.out(2.2)"}}, {ea + 0.9});')
-    js.append(f'tl.to("#cta span", {{scale: 1.06, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 3}}, {ea + 1.6});')
+    if STYLE["end_card"] != "none":
+        els.append(f'<div id="endshade" class="clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="9"></div>')
+        js.append(f'tl.fromTo("#endshade", {{opacity: 0}}, {{opacity: 1, duration: 0.7}}, {ea});')
+    if STYLE["end_card"] == "brand":
+        els.append(f'<div id="brand" class="end clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="10">'
+                   f'<div class="shine" style="font-size: {brand_size(end["brand"])}px">{html.escape(end["brand"])}</div>'
+                   f'<div class="end-rule"></div></div>')
+        js.append(f'tl.fromTo("#brand .shine", {{opacity: 0, scale: 1.35, filter: "blur(12px)"}}, '
+                  f'{{opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.9, ease: "expo.out"}}, {ea + 0.2});')
+        js.append(f'tl.fromTo("#brand .end-rule", {{scaleX: 0}}, {{scaleX: 1, duration: 0.7, ease: "power4.out"}}, {ea + 0.6});')
+        js.append(f'tl.fromTo("#brand .shine", {{backgroundPosition: "120% 0"}}, {{backgroundPosition: "-20% 0", duration: 1.2, ease: "power2.inOut"}}, {ea + 1.0});')
+    if STYLE["end_card"] in ("brand", "cta"):
+        els.append(f'<div id="cta" class="cta clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="11">'
+                   f'<span>{html.escape(end["cta"])}</span></div>')
+        js.append(f'tl.fromTo("#cta span", {{opacity: 0, scale: 0.7}}, {{opacity: 1, scale: 1, duration: 0.55, ease: "back.out(2.2)"}}, {ea + 0.9});')
+        js.append(f'tl.to("#cta span", {{scale: 1.06, duration: 0.5, ease: "sine.inOut", yoyo: true, repeat: 3}}, {ea + 1.6});')
 
     # ---- เกรนฟิล์ม: เลื่อนตำแหน่งแบบกำหนดได้ทุกเฟรม (แทน CSS animation) ----
-    js.append(f'for (let k = 0; k < {int(total * 12)}; k++) '
-              f'tl.set("#grain .g", {{x: ((k * 37) % 20 - 10) + "%", y: ((k * 53) % 20 - 10) + "%"}}, k / 12);')
+    if STYLE["overlays"]["grain"]:
+        js.append(f'for (let k = 0; k < {int(total * 12)}; k++) '
+                  f'tl.set("#grain .g", {{x: ((k * 37) % 20 - 10) + "%", y: ((k * 53) % 20 - 10) + "%"}}, k / 12);')
+
+    ov = STYLE["overlays"]
+    root_classes = " ".join([
+        f'ts-{STYLE["title_style"]}', f'tp-{STYLE["title_position"]}',
+        f'cs-{STYLE["caption_style"]}', f'cp-{STYLE["caption_position"]}',
+        "" if ov["grain"] else "no-grain", "" if ov["vignette"] else "no-vignette",
+        "" if ov["warm_grade"] else "no-grade"]).split()
 
     page = (HERE / "index.template.html").read_text()
     page = (page.replace("{{TOTAL}}", str(total))
@@ -193,6 +227,7 @@ def main():
                 .replace("{{ACCENT}}", BRAND["colors"]["accent"])
                 .replace("{{ACCENT_LIGHT}}", BRAND["colors"]["accent_light"])
                 .replace("{{ACCENT_DARK}}", BRAND["colors"]["accent_dark"])
+                .replace("{{ROOT_CLASSES}}", " ".join(root_classes))
                 .replace("{{SHOTS}}", "\n      ".join(shot_els))
                 .replace("{{ELEMENTS}}", "\n      ".join(els))
                 .replace("{{JS}}", "\n      ".join(js)))

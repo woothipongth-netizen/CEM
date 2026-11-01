@@ -94,10 +94,35 @@
         background: linear-gradient(180deg, var(--gold-hi), var(--gold) 45%, var(--gold-deep));
         color: #1a1208; font-size: 60px; font-weight: 800; box-shadow: 0 12px 40px rgba(232,200,121,0.35);
       }
+
+      /* ===== ตัวเลือกจาก style.json (docs/09-template-design.md) ===== */
+      /* หัวข้อ: shine = ทองมีแสงวิ่ง (ค่าเริ่มต้น), boxed = กล่องสีแบรนด์, minimal = ตัวขาวเรียบ */
+      .ts-boxed .title { filter: none; }
+      .ts-boxed .title-mask { background: var(--gold); border-radius: 18px; padding: 30px 34px 16px; margin-top: 0; box-shadow: 0 10px 34px rgba(0,0,0,0.35); }
+      .ts-boxed .title .shine, .ts-boxed .title .shine em { background: none; color: #1a1208; }
+      .ts-boxed .title .shine em { color: #ffffff; }
+      .ts-boxed .title .rule { display: none; }
+      .ts-minimal .title .shine { background: none; color: var(--ink); font-weight: 700; font-size: 64px; }
+      .ts-minimal .title .shine em { background: none; color: var(--gold); }
+      .ts-minimal .title .rule { width: 90px; height: 3px; background: var(--ink); }
+      /* ตำแหน่งหัวข้อ: top = บนสุด (ค่าเริ่มต้น), upper = ลงมาอีกนิด เผื่อมีโลโก้ร้านในภาพ */
+      .tp-upper .title { top: 330px; }
+      /* ซับ: rail = กล่องเข้มขอบสีแบรนด์ (ค่าเริ่มต้น), outline = ตัวหนาขอบดำแบบ TikTok, light = กล่องขาว */
+      .cs-outline .line span {
+        background: none; border: none; box-shadow: none; padding: 0 10px; font-weight: 800; font-size: 66px;
+        text-shadow: 0 0 2px #000, 3px 3px 0 #000, -3px 3px 0 #000, 3px -3px 0 #000, -3px -3px 0 #000,
+                     0 4px 0 #000, 0 -4px 0 #000, 4px 0 0 #000, -4px 0 0 #000, 0 8px 22px rgba(0,0,0,0.6);
+      }
+      .cs-light .line span { background: rgba(255,255,255,0.94); border: none; color: #1c1813; font-weight: 600; }
+      .cs-light .line em { color: var(--gold-deep); }
+      /* ตำแหน่งซับ: bottom (ค่าเริ่มต้น), low = สูงขึ้น เผื่อปุ่ม/ข้อความของแอปบังด้านล่าง */
+      .cp-low .line { bottom: 460px; }
+      /* ชั้นภาพ */
+      .no-grain #grain, .no-vignette #vignette, .no-grade #grade { display: none; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="{{TOTAL}}" data-width="1080" data-height="1920">
+    <div id="root" class="{{ROOT_CLASSES}}" data-composition-id="main" data-start="0" data-duration="{{TOTAL}}" data-width="1080" data-height="1920">
       <audio id="mix" class="clip" src="{{AUDIO}}" data-start="0" data-duration="{{TOTAL}}" data-track-index="1" data-volume="1"></audio>
       {{SHOTS}}
       <div id="grade"></div>
