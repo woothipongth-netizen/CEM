@@ -20,6 +20,7 @@
 | 6 | [docs/06-faq.md](docs/06-faq.md) | คำถามที่เจอบ่อย |
 | 7 | [docs/07-onboarding.md](docs/07-onboarding.md) | ชุดคำถามที่ Claude ใช้สัมภาษณ์ธุรกิจของคุณ |
 | 8 | [docs/08-comparison.md](docs/08-comparison.md) | ระบบนี้ต่างจากตัดต่อเองแค่ไหน ผู้ใช้ได้อะไร เหมาะกับใคร |
+| 9 | [docs/09-template-design.md](docs/09-template-design.md) | ชุดคำถามออกแบบเทมเพลตเฉพาะร้าน (ไม่เหมือนใคร) |
 
 [CLAUDE.md](CLAUDE.md) คือคำสั่งที่ Claude อ่านเองทุกครั้งที่เริ่มแชท
 [brand.json](brand.json) และ [business-profile.md](business-profile.md) คือข้อมูลธุรกิจของคุณ Claude กรอกให้จากการสัมภาษณ์ครั้งแรก
