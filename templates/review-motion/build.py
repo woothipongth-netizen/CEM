@@ -40,6 +40,16 @@ def rich(text):
     return "".join(out).replace("|", "<br />")
 
 
+# สระบน/ล่างและวรรณยุกต์ไทยไม่กินความกว้าง นับเฉพาะตัวที่กินที่
+THAI_MARKS = set(chr(c) for c in [0x0E31, *range(0x0E34, 0x0E3B), *range(0x0E47, 0x0E4F)])
+
+
+def brand_size(text, width=940, max_px=150):
+    """ย่อชื่อร้านที่การ์ดจบให้พอดีจอ 1080 (ชื่อยาวเช่น 17 ตัวอักษรไทยเคยล้นจอที่ 150px)"""
+    n = sum(1 for ch in text if ch not in THAI_MARKS)
+    return min(max_px, int(width / (max(1, n) * 0.62)))
+
+
 def main():
     content = json.loads(Path(sys.argv[1]).read_text())
     proj = Path(sys.argv[2])
@@ -160,7 +170,8 @@ def main():
     ea = end["start"]
     els.append(f'<div id="endshade" class="clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="9"></div>')
     els.append(f'<div id="brand" class="end clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="10">'
-               f'<div class="shine">{html.escape(end["brand"])}</div><div class="end-rule"></div></div>')
+               f'<div class="shine" style="font-size: {brand_size(end["brand"])}px">{html.escape(end["brand"])}</div>'
+               f'<div class="end-rule"></div></div>')
     els.append(f'<div id="cta" class="cta clip" data-start="{ea}" data-duration="{total - ea:.2f}" data-track-index="11">'
                f'<span>{html.escape(end["cta"])}</span></div>')
     js.append(f'tl.fromTo("#endshade", {{opacity: 0}}, {{opacity: 1, duration: 0.7}}, {ea});')

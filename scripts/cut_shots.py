@@ -1,6 +1,10 @@
 """ตัดช็อตจากฟุตเทจดิบตามแผน แล้วต่อเป็นวิดีโอเดียว (ไม่มีเสียง) สำหรับใส่ใน HyperFrames
 
-ใช้: python3 -I scripts/cut_shots.py <plan.json> <โฟลเดอร์ฟุตเทจ> <โฟลเดอร์ผลลัพธ์> [--head-pad 0.4]
+ใช้: python3 -I scripts/cut_shots.py <plan.json> <โฟลเดอร์ฟุตเทจ> <โฟลเดอร์ผลลัพธ์> [--head-pad 0.4] [--curves check.json]
+
+--curves: ค่าการเคลื่อนไหวรายเฟรมจาก check_shots.py ถ้าใส่ จะไม่อ่านไฟล์ 4K ซ้ำเพื่อหาช่วงกล้องนิ่ง
+(เร็วขึ้น ~3 เท่า: 19 ช็อต 6.4 → 2.2 นาที) คลิปที่ไม่มีใน check.json จะวัดเองตามเดิม
+ช็อตทำพร้อมกัน 4 ช็อต
 
 --head-pad: ตัดเผื่อหัวช็อตไว้อีก N วินาที ให้ช็อตถัดไปเริ่มซ้อนก่อนจุดตัด ใช้กับทรานสิชันแบบ
 crossfade ในเทมเพลต review-motion (ถ้าใส่ จะไม่สร้าง base.mp4 เพราะช็อตซ้อนกัน)
@@ -27,6 +31,7 @@ from pathlib import Path
 import numpy as np
 
 MARGIN = 2.0          # วินาทีที่ห้ามใช้ ต้นและท้ายคลิป
+PAD = 0.0             # --head-pad (กันไม่ให้ส่วนที่ตัดเผื่อหัวช็อตล้ำเข้าไปใน MARGIN)
 SAMPLE_FPS = 4        # ความถี่ภาพที่ใช้วัดการเคลื่อนไหว
 W, H = 72, 128        # ขนาดภาพเล็กที่ใช้วัด
 
@@ -50,12 +55,34 @@ def motion_curve(path):
     return np.abs(np.diff(frames, axis=0)).mean(axis=(1, 2))
 
 
+CURVES = {}
+
+
+def load_curves(path):
+    for r in json.loads(Path(path).read_text()):
+        CURVES[r["clip"]] = r["curve"]
+
+
+def curve_for(path):
+    """ใช้ค่าจาก check_shots.py ถ้ามี (YDIF ที่เวลา t = ความต่างจากเฟรมก่อนหน้า จึงเลื่อน 1 ช่องให้ตรงกับ np.diff)"""
+    pts = CURVES.get(Path(path).name)
+    if not pts:
+        return motion_curve(path)
+    n = int(round(pts[-1][0] * SAMPLE_FPS)) + 1
+    out = np.full(n, np.inf)
+    for t, v in pts:
+        i = int(round(t * SAMPLE_FPS))
+        if i < n:
+            out[i] = v
+    return out[1:]
+
+
 def calmest_start(path, dur):
     total = duration(path)
-    lo, hi = MARGIN, total - MARGIN - dur
+    lo, hi = MARGIN + PAD, total - MARGIN - dur
     if hi < lo:  # คลิปสั้นเกินกว่าจะเว้นขอบได้ครบ ใช้ช่วงกลางคลิป
         return max(0.0, (total - dur) / 2), total
-    curve = motion_curve(path)
+    curve = curve_for(path)
     win = max(1, int(dur * SAMPLE_FPS))
     best, best_t = None, lo
     t = lo
@@ -71,16 +98,25 @@ def calmest_start(path, dur):
 def main():
     # ffmpeg concat อ่าน path ใน list.txt เทียบกับที่อยู่ของ list.txt จึงต้องใช้ path เต็ม
     plan_path, raw_dir, out_dir = (Path(a).resolve() for a in sys.argv[1:4])
+    global PAD
     pad = float(sys.argv[sys.argv.index("--head-pad") + 1]) if "--head-pad" in sys.argv else 0.0
+    PAD = pad
     out_dir.mkdir(parents=True, exist_ok=True)
     plan = json.loads(plan_path.read_text())
+    if "--curves" in sys.argv:
+        load_curves(sys.argv[sys.argv.index("--curves") + 1])
     used, lst, checks = [], [], []
     clock = 0.0
-    for i, shot in enumerate(plan):
+    from concurrent.futures import ThreadPoolExecutor
+
+    def work(args):
+        i, shot = args
         src = raw_dir / shot["clip"]
         dur = float(shot["dur"])
         if "start" in shot:
             start, total = float(shot["start"]), duration(src)
+            if start - min(pad, start) < MARGIN or start + dur > total - MARGIN:
+                print(f"เตือน: ช็อต {i} ({shot['clip']}) start={start} ล้ำเข้า {MARGIN} วินาทีแรก/ท้ายของคลิป")
         else:
             start, total = calmest_start(src, dur)
         pad_used = min(pad, start)
@@ -100,6 +136,11 @@ def main():
              "-vsync", "0", "-frames:v", "1", str(check)],
             check=True,
         )
+        return i, shot, src, start, dur, pad_used, total, out, check
+
+    with ThreadPoolExecutor(4) as ex:
+        results = list(ex.map(work, enumerate(plan)))
+    for i, shot, src, start, dur, pad_used, total, out, check in results:
         checks.append(str(check))
         lst.append(f"file '{out}'")
         used.append({"i": i, "clip": shot["clip"], "file": out.name, "src_start": round(start, 2), "dur": dur,
