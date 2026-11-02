@@ -1,9 +1,10 @@
 {
-  "_comment": "ข้อมูลแบรนด์ แก้ไฟล์นี้ไฟล์เดียวให้คลิปเป็นของร้านคุณ | สีใส่เป็นรหัส hex | font ต้องมีใน @fontsource (npm)",
+  "_comment": "ข้อมูลแบรนด์ แก้ไฟล์นี้ไฟล์เดียวให้คลิปเป็นของร้านคุณ | shop_name บังคับใส่ | staff_name = ชื่อเล่นคนพูด (ใช้ช่วยถอดเสียง ไม่ขึ้นป้ายชื่อในคลิป) | music_library = ลิงก์โฟลเดอร์คลังเพลงใน Drive | logo = path รูปโลโก้ (ถ้ามี) | สีใส่เป็นรหัส hex | font ต้องมีใน @fontsource (npm)",
   "shop_name": "xxxx",
   "staff_name": "xxxx",
-  "staff_role": "ช่างประจำร้าน",
+  "staff_role": "เจ้าของร้าน",
   "cta": "ทักแชท จองคิวได้เลย",
+  "music_library": "",
   "colors": {
     "accent": "#e8c879",
     "accent_light": "#fff4d6",
