@@ -19,10 +19,20 @@ files="$tmp/node_modules/@fontsource/$FONT/files"
 for w in 500 700 800; do
   # ฟอนต์บางตัวไม่มีน้ำหนักนี้ ใช้น้ำหนักที่ใกล้ที่สุดที่มี
   for sub in thai latin; do
-    src="$(ls "$files"/"$FONT"-$sub-{$w,700,600,500,400}-normal.woff2 2>/dev/null | head -1)"
+    src="$(ls "$files"/"$FONT"-$sub-{$w,700,600,500,400}-normal.woff2 2>/dev/null | head -1 || true)"
     [ -n "$src" ] && cp "$src" "$VENDOR/fonts/brand-$sub-$w-normal.woff2"
   done
 done
+# ฟอนต์ลายมือ (ไม่บังคับ): brand.json "font_hand"
+HAND="$(python3 -c "import json;print(json.load(open('$ROOT/brand.json')).get('font_hand',''))")"
+if [ -n "$HAND" ]; then
+  echo "== ฟอนต์ลายมือ $HAND"
+  (cd "$tmp" && npm i -s "@fontsource/$HAND" >/dev/null 2>&1)
+  for sub in thai latin; do
+    src="$(ls "$tmp/node_modules/@fontsource/$HAND/files"/"$HAND"-$sub-{400,500,700}-normal.woff2 2>/dev/null | head -1 || true)"
+    [ -n "$src" ] && cp "$src" "$VENDOR/fonts/hand-$sub-400-normal.woff2"
+  done
+fi
 rm -rf "$tmp"
 
 echo "== Whisper สำหรับถอดเสียงภาษาไทย"
