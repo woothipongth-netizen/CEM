@@ -1,0 +1,256 @@
+<title>แบบสอบถามร้าน</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@500;600&display=swap">
+<style>
+/* Layout: one narrow column of question cards, sticky progress bar with the six sections, submit bar at the end */
+:root {
+  --bg: #eef0f3; --surface: #ffffff; --ink: #1c2230; --muted: #5d6677; --line: #d9dde4;
+  --accent: #0f6e6a; --accent-soft: #dcefed; --accent-ink: #ffffff; --warn: #9a4b00; --warn-soft: #fbead8;
+  --display: "Mitr", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --body: "IBM Plex Sans Thai", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161d; --surface: #1b212b; --ink: #e8ebf0; --muted: #a2abba; --line: #2e3643;
+  --accent: #4fbdb5; --accent-soft: #19393a; --accent-ink: #0b1514; --warn: #f0b072; --warn-soft: #3a2a17; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1b212b; --ink: #e8ebf0; --muted: #a2abba; --line: #2e3643;
+  --accent: #4fbdb5; --accent-soft: #19393a; --accent-ink: #0b1514; --warn: #f0b072; --warn-soft: #3a2a17; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap { max-width: 680px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-block: 12px; display: flex; flex-direction: column; gap: 8px; }
+h1 { font-family: var(--display); font-weight: 600; font-size: 22px; margin: 0; text-wrap: balance; }
+.secs { display: flex; gap: 6px; flex-wrap: wrap; }
+.secs a { font-size: 13px; text-decoration: none; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-variant-numeric: tabular-nums; }
+.secs a.done { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.intro { color: var(--muted); margin: 16px 0 4px; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 19px; margin: 28px 0 10px; scroll-margin-top: 110px; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 14px 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
+.q.req-miss { border-color: var(--warn); }
+.qh { display: flex; gap: 10px; align-items: baseline; }
+.qn { font-family: var(--display); color: var(--accent); font-size: 15px; flex: none; font-variant-numeric: tabular-nums; }
+.qt { font-weight: 600; min-width: 0; }
+.hint { color: var(--muted); font-size: 14px; margin-top: -4px; }
+.opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { border: 1.5px solid var(--line); background: transparent; color: var(--ink); border-radius: 12px; padding: 8px 14px; font: inherit; text-align: left; cursor: pointer; min-height: 44px; }
+.opt small { display: block; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--ink); }
+.opt[aria-pressed="true"]::before { content: "✓ "; color: var(--accent); font-weight: 600; }
+.opt:focus-visible, .skip:focus-visible, input:focus-visible, textarea:focus-visible, .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.opt.wide { flex: 1 1 260px; }
+.skips { display: flex; gap: 8px; flex-wrap: wrap; }
+.skip { border: 1px dashed var(--line); background: transparent; color: var(--muted); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 14px; cursor: pointer; min-height: 36px; }
+.skip[aria-pressed="true"] { border-style: solid; border-color: var(--muted); color: var(--ink); background: var(--bg); }
+input[type=text], textarea { width: 100%; box-sizing: border-box; border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; background: var(--bg); color: var(--ink); }
+textarea { min-height: 64px; resize: vertical; }
+label.sub { font-size: 14px; color: var(--muted); display: flex; flex-direction: column; gap: 4px; }
+.follow { border-left: 3px solid var(--accent); padding-left: 12px; display: flex; flex-direction: column; gap: 8px; }
+.follow[hidden] { display: none !important; }
+.submit { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.submit .wrap { padding-block: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { font: inherit; font-weight: 600; border-radius: 12px; padding: 10px 18px; cursor: pointer; min-height: 44px; border: 1.5px solid var(--accent); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--accent); }
+.status { font-size: 14px; color: var(--muted); flex: 1 1 200px; min-width: 0; }
+.status.warn { color: var(--warn); }
+pre.out { white-space: pre-wrap; word-break: break-word; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; font-size: 14px; }
+@media (prefers-reduced-motion: no-preference) { .opt, .skip { transition: background .15s, border-color .15s; } }
+</style>
+
+<header class="top"><div class="wrap">
+  <h1>แบบสอบถามร้าน</h1>
+  <nav class="secs" id="secs" aria-label="หมวดคำถาม"></nav>
+</div></header>
+
+<main class="wrap">
+  <p class="intro">ตอบทุกข้อในหน้านี้ แล้วกด <b>ส่งคำตอบ</b> ครั้งเดียว Claude จะอ่านคำตอบไปเขียนโปรไฟล์ร้าน
+  ข้อที่ยังไม่อยากตอบกด <b>ข้ามไว้ก่อน</b> (ถามใหม่ตอนต้องใช้) หรือ <b>ไม่สะดวกตอบ</b> (ไม่ถามอีก) ข้อเลือกได้หลายข้อ กดได้หลายปุ่ม</p>
+  <form id="f" novalidate></form>
+  <h2 id="result-h" hidden>คำตอบที่ส่งแล้ว</h2>
+  <pre class="out" id="out" hidden></pre>
+</main>
+
+<div class="submit"><div class="wrap">
+  <button class="btn primary" id="send" type="button">ส่งคำตอบ</button>
+  <button class="btn ghost" id="copy" type="button">คัดลอกคำตอบ</button>
+  <span class="status" id="status" role="status">ยังไม่ได้ส่ง</span>
+</div></div>
+
+<script>
+const SKIP = "ข้ามไว้ก่อน", NA = "ไม่สะดวกตอบ";
+// q: id, sec, t (คำถาม), type single|multi|text, opts [[label, desc]], other (placeholder ช่องพิมพ์เอง), noskip, req
+const SECTIONS = ["ธุรกิจ", "ลูกค้า", "ภาพลักษณ์แบรนด์", "งานคลิป", "เสียงและข้อห้าม", "การทำงานร่วมกัน"];
+const Q = [
+  {id:"1.1", sec:1, t:"ธุรกิจของคุณเป็นประเภทไหน", type:"single", opts:[["ความงาม / คลินิก"],["ร้านอาหาร / คาเฟ่"]], other:"อื่นๆ เช่น ร้านค้า บริการ การศึกษา"},
+  {id:"1.2", sec:1, t:"ชื่อธุรกิจที่จะขึ้นในคลิป", type:"text", noskip:true, req:true, other:"พิมพ์ชื่อร้านจริง (ใช้ชื่อเดียวกับเพจ/บัญชีก็ได้)"},
+  {id:"1.3", sec:1, t:"สินค้าหรือบริการหลักที่อยากโปรโมต", type:"single", opts:[["บริการเดียวเป็นหลัก"],["หลายบริการ สลับกันไป"]], other:"รายละเอียด / รายการบริการ"},
+  {id:"1.4", sec:1, t:"จุดเด่นที่ทำให้ลูกค้าเลือกคุณ", type:"single", opts:[["ฝีมือ / ผลงาน"],["ราคา / ความคุ้มค่า"]], other:"อื่นๆ เช่น บริการ ทำเล ความปลอดภัย"},
+  {id:"2.1", sec:2, t:"ลูกค้าหลักอายุช่วงไหน", type:"multi", opts:[["วัยทำงาน 25–40"],["ทุกวัย"],["วัยรุ่น / นักศึกษา 18–24"],["วัย 40 ขึ้นไป"]]},
+  {id:"2.2", sec:2, t:"ลูกค้ากังวลเรื่องอะไรก่อนตัดสินใจ", hint:"ใช้เขียนประโยคเปิดคลิป", type:"multi", top:true,
+    opts:[["กลัวเจ็บ"],["กลัวผลไม่สวย / ไม่เป็นธรรมชาติ"],["ราคา / ไม่แน่ใจว่าคุ้ม"],["ความสะอาด / ความปลอดภัย"],["ไม่มั่นใจฝีมือ อยากเห็นผลงานจริง"],["ผลอยู่ได้นานแค่ไหน"],["ดูแลหลังทำยุ่งยาก / ต้องพักฟื้น"],["ไม่มีเวลา / เดินทางไกล"]]},
+  {id:"2.3", sec:2, t:"ลูกค้าส่วนใหญ่มาจากไหน", type:"single", opts:[["ในพื้นที่ใกล้ร้าน"],["ทั่วประเทศ / ออนไลน์"]]},
+  {id:"2.4", sec:2, t:"อยากให้คนดูทำอะไรหลังดูคลิป", type:"multi", opts:[["ทักแชท / จองคิว"],["โทรหาร้าน"],["มาที่ร้าน / เปิดแผนที่"],["กดลิงก์ในโปรไฟล์ / สั่งซื้อออนไลน์"],["ติดตามเพจ / กดถูกใจ"]],
+    other:"ข้อความปุ่มชวนท้ายคลิป (ไม่บังคับ ไม่เกิน 2 การกระทำ เช่น ทักแชทหรือโทรจองคิว)"},
+  {id:"3.1", sec:3, t:"อยากให้คลิปรู้สึกแบบไหน", type:"single", opts:[["หรูหรา พรีเมียม"],["อบอุ่น เป็นกันเอง"]], other:"อื่นๆ เช่น สนุกสดใส มืออาชีพ"},
+  {id:"3.2", sec:3, t:"สีหลักของแบรนด์ / โลโก้", type:"single", opts:[["ทอง / ครีม"],["ตามโลโก้ร้าน", "ส่งรูปโลโก้ในแชททีหลังได้"]], other:"สีอื่น หรือรหัสสี เช่น #c8a96e"},
+  {id:"3.3", sec:3, t:"ฟอนต์", type:"single", opts:[["Kanit","ทันสมัย หนา"],["Noto Serif Thai","มีหัว ดูหรู"]], other:"อื่นๆ เช่น Prompt, Mitr, Sarabun"},
+  {id:"3.4", sec:3, t:"ใครเป็นคนพูดในคลิป", hint:"ชื่อเล่นใช้ช่วยถอดเสียง ไม่ขึ้นป้ายชื่อในคลิป", type:"single", opts:[["เจ้าของร้านพูดเอง"],["ไม่มีคนพูด ใช้เสียงพากย์อย่างเดียว"],["คนในทีม"]], other:"ชื่อเล่นคนพูด"},
+  {id:"4.1", sec:4, t:"ลงคลิปที่ไหนบ้าง", type:"multi", opts:[["TikTok"],["Instagram Reels"],["Facebook Reels / เพจ"],["YouTube Shorts"],["LINE VOOM"]]},
+  {id:"4.2", sec:4, t:"แนวคลิปที่จะทำบ่อย", hint:"แนวที่สำคัญที่สุดจะเป็นแนวหลักของเทมเพลต", type:"multi", top:true, topq:"แนวไหนเป็นแนวหลัก",
+    opts:[["รีวิวลูกค้า / ก่อน-หลัง"],["ให้ความรู้ / ตอบคำถามลูกค้า"],["เบื้องหลัง / ขั้นตอนการทำ"],["โปรโมชัน / ราคา"],["แนะนำร้าน / ทีมงาน"],["ลูกค้าพูดรีวิวเอง"],["เล่นตามเทรนด์ / ไวรัล"],["ชีวิตประจำวันในร้าน"]]},
+  {id:"4.3", sec:4, t:"ความยาวคลิปปกติ", type:"single", opts:[["15–30 วินาที"],["45–60 วินาที"]]},
+  {id:"4.4", sec:4, t:"ระดับลูกเล่นในคลิป", type:"single", opts:[["มีโมชั่นและทรานสิชัน"],["เรียบ เน้นอ่านง่าย"]]},
+  {id:"4.5", sec:4, t:"ซับยาวแค่ไหน", hint:"ทั้งสองแบบเป็นบรรทัดเดียวเสมอ", type:"single", opts:[["สั้น 1 บรรทัด ทีละวลี","แนะนำ"],["สั้นมาก ทีละ 2–4 คำ"]]},
+  {id:"5.1", sec:5, t:"เสียงพากย์มาจากไหน", type:"single", opts:[["อัดเสียงพากย์เองพร้อมสคริปต์"],["อัดเอง ไม่มีสคริปต์","Claude ถอดเสียงให้"]]},
+  {id:"5.2", sec:5, t:"ในคลิปพูดแทนตัวเองว่าอะไร ลงท้ายแบบไหน", type:"single", opts:[["ชื่อเล่น + ครับ"],["ชื่อเล่น + ค่ะ"]], other:"ชื่อที่ใช้เรียกตัวเองในคลิป"},
+  {id:"5.3", sec:5, t:"เพลงพื้นหลัง", type:"single", opts:[["ใส่เพลงเองในแอป (TikTok / IG)","Claude ส่งคลิปไม่มีเพลง"],["ใช้เพลงจากคลังเพลงใน Drive","เลือกเพลงตอนทำงานแต่ละชิ้น"],["ไม่ใช้เพลง"]], other:"ลิงก์โฟลเดอร์คลังเพลง (ถ้าเลือกคลังเพลง)"},
+  {id:"5.4", sec:5, t:"มีคำหรือเรื่องที่ห้ามใส่ในคลิปไหม", type:"single", noskip:true, req:true, opts:[["มี"],["ไม่มีคำเจาะจง ไปต่อได้"]], other:"คำหรือเรื่องที่ห้าม (ถ้าเลือก มี)"},
+  {id:"6.1", sec:6, t:"อยากคอยดูระหว่างทำงาน หรือให้ทำอัตโนมัติแล้วรอดูงานไฟนอล", type:"single", noskip:true, req:true, wide:true, opts:[
+    ["ดูระหว่างทาง","ได้: เห็นแผนก่อน render เห็นคำผิดในซับ เลือกเพลง เปลี่ยนฟุตเทจได้ก่อนเสียเวลา · แลกกับ: ช้ากว่า ต้องคอยตอบ"],
+    ["อัตโนมัติ รอดูงานไฟนอล","ได้: ไม่ต้องสั่งอะไร Claude ตัดสินใจเอง ได้งานเร็ว · แลกกับ: อาจต้องสั่งแก้หลังเห็นงาน (แก้แล้วต้อง render ใหม่)"]]},
+  {id:"6.2", sec:6, t:"ทำคลิปบ่อยแค่ไหน", type:"single", opts:[["สัปดาห์ละ 1–3 คลิป"],["ทุกวัน"]]},
+];
+
+let A = {};
+try { A = JSON.parse(localStorage.getItem("onb-draft") || "{}") || {}; } catch (e) { A = {}; }
+const get = id => (A[id] ||= {sel: [], other: "", skip: "", top: ""});
+
+const form = document.getElementById("f");
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) { if (k === "text") e.textContent = v; else if (v !== undefined && v !== null) e.setAttribute(k, v); }
+  kids.forEach(k => k && e.append(k));
+  return e;
+}
+
+function build() {
+  form.innerHTML = "";
+  SECTIONS.forEach((name, i) => {
+    form.append(el("h2", {id: "s" + (i + 1), text: `หมวด ${i + 1}: ${name}`}));
+    Q.filter(q => q.sec === i + 1).forEach(q => form.append(card(q)));
+  });
+  refresh();
+}
+
+function card(q) {
+  const a = get(q.id);
+  const box = el("section", {class: "q", id: "q" + q.id.replace(".", "-")});
+  const head = el("div", {class: "qh"}, el("span", {class: "qn", text: q.id}),
+    el("span", {class: "qt", text: q.t + (q.type === "multi" ? " (เลือกได้หลายข้อ)" : "") + (q.req ? " *" : "")}));
+  box.append(head);
+  if (q.hint) box.append(el("div", {class: "hint", text: q.hint}));
+  if (q.opts) {
+    const row = el("div", {class: "opts", role: "group", "aria-label": q.t});
+    q.opts.forEach(([label, desc]) => {
+      const b = el("button", {type: "button", class: "opt" + (q.wide ? " wide" : ""), "aria-pressed": String(a.sel.includes(label))});
+      b.append(document.createTextNode(label));
+      if (desc) b.append(el("small", {text: desc}));
+      b.addEventListener("click", () => {
+        if (q.type === "multi") a.sel = a.sel.includes(label) ? a.sel.filter(x => x !== label) : [...a.sel, label];
+        else a.sel = a.sel[0] === label ? [] : [label];
+        if (a.sel.length) a.skip = "";
+        save(); build(); document.getElementById(box.id)?.querySelector(".opt")?.focus({preventScroll: true});
+      });
+      row.append(b);
+    });
+    box.append(row);
+  }
+  if (q.top) {
+    const f = el("div", {class: "follow"});
+    f.hidden = a.sel.length < (q.id === "4.2" ? 2 : 4);
+    f.append(el("div", {class: "hint", text: q.topq || "เลือกไว้หลายข้อ ข้อไหนสำคัญที่สุด"}));
+    const row = el("div", {class: "opts"});
+    [...a.sel, ...(q.id === "2.2" ? ["เท่ากันหมด"] : [])].forEach(label => {
+      const b = el("button", {type: "button", class: "opt", "aria-pressed": String(a.top === label), text: label});
+      b.addEventListener("click", () => { a.top = a.top === label ? "" : label; save(); build(); });
+      row.append(b);
+    });
+    f.append(row);
+    box.append(f);
+  }
+  if (q.other) {
+    const inp = el("input", {type: "text", id: "o" + q.id.replace(".", "-"), placeholder: q.other, "aria-label": q.other});
+    inp.value = a.other;
+    inp.addEventListener("input", () => { a.other = inp.value; if (inp.value.trim()) a.skip = ""; save(); refresh(); });
+    box.append(inp);
+  }
+  if (!q.noskip) {
+    const sk = el("div", {class: "skips"});
+    [SKIP, NA].forEach(s => {
+      const b = el("button", {type: "button", class: "skip", "aria-pressed": String(a.skip === s), text: s});
+      b.addEventListener("click", () => { a.skip = a.skip === s ? "" : s; if (a.skip) { a.sel = []; a.top = ""; } save(); build(); });
+      sk.append(b);
+    });
+    box.append(sk);
+  }
+  return box;
+}
+
+const answered = q => { const a = get(q.id); return a.sel.length > 0 || a.other.trim() !== "" || a.skip !== ""; };
+function refresh() {
+  const nav = document.getElementById("secs"); nav.innerHTML = "";
+  SECTIONS.forEach((name, i) => {
+    const qs = Q.filter(q => q.sec === i + 1), n = qs.filter(answered).length;
+    nav.append(el("a", {href: "#s" + (i + 1), class: n === qs.length ? "done" : "", text: `${i + 1} ${name} ${n}/${qs.length}`}));
+  });
+}
+function save() { try { localStorage.setItem("onb-draft", JSON.stringify(A)); } catch (e) {} }
+
+function summary() {
+  return Q.map(q => {
+    const a = get(q.id); let s;
+    if (a.skip) s = a.skip;
+    else { s = a.sel.join(" · "); if (a.other.trim()) s += (s ? " · " : "") + "พิมพ์: " + a.other.trim(); if (!s) s = "(ยังไม่ตอบ)"; }
+    if (a.top) s += " · สำคัญที่สุด: " + a.top;
+    return `${q.id} ${q.t}: ${s}`;
+  }).join("\n");
+}
+
+const status = document.getElementById("status");
+function setStatus(t, warn) { status.textContent = t; status.classList.toggle("warn", !!warn); }
+
+function missing() {
+  document.querySelectorAll(".q.req-miss").forEach(e => e.classList.remove("req-miss"));
+  const miss = Q.filter(q => q.req && !(get(q.id).sel.length || get(q.id).other.trim()));
+  miss.forEach(q => document.getElementById("q" + q.id.replace(".", "-"))?.classList.add("req-miss"));
+  return miss;
+}
+
+let dbP = null;
+async function db() { if (!dbP) dbP = (window.claude?.use ? window.claude.use("db") : Promise.resolve(null)); return dbP; }
+
+document.getElementById("send").addEventListener("click", async () => {
+  const miss = missing();
+  if (miss.length) { setStatus("ต้องตอบข้อ " + miss.map(q => q.id).join(", ") + " ก่อนส่ง", true); document.getElementById("q" + miss[0].id.replace(".", "-")).scrollIntoView({behavior: "smooth", block: "center"}); return; }
+  const text = summary();
+  const out = document.getElementById("out"); out.textContent = text; out.hidden = false; document.getElementById("result-h").hidden = false;
+  setStatus("กำลังส่ง…");
+  try {
+    const d = await db();
+    if (!d) { setStatus("ส่งเข้าระบบไม่ได้ในหน้านี้ กด คัดลอกคำตอบ แล้ววางในแชทแทน", true); return; }
+    await d.doc("onboarding/answers").set({answers: JSON.parse(JSON.stringify(A)), text, submittedAt: new Date().toISOString(), form: "07-onboarding v2"});
+    setStatus("ส่งแล้ว · บอก Claude ในแชทว่า \"ตอบแบบสอบถามแล้ว\"");
+  } catch (e) {
+    setStatus("ส่งไม่สำเร็จ กด คัดลอกคำตอบ แล้ววางในแชทแทน", true);
+  }
+});
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = summary();
+  const out = document.getElementById("out"); out.textContent = text; out.hidden = false; document.getElementById("result-h").hidden = false;
+  try { await navigator.clipboard.writeText(text); setStatus("คัดลอกแล้ว วางในแชทได้เลย"); }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(out); const s = getSelection(); s.removeAllRanges(); s.addRange(r); setStatus("เลือกข้อความไว้แล้ว กดคัดลอกเองได้"); }
+});
+
+build();
+// เปิดหน้าแล้วโหลดคำตอบที่เคยส่ง (ถ้ามี และยังไม่มีฉบับร่างในเครื่อง)
+(async () => {
+  try {
+    const d = await db(); if (!d) return;
+    const snap = await d.doc("onboarding/answers").get();
+    if (snap.exists && !Object.keys(A).length) { A = snap.data().answers || {}; build(); setStatus("โหลดคำตอบที่เคยส่งแล้ว แก้แล้วส่งใหม่ได้"); }
+  } catch (e) {}
+})();
+</script>
