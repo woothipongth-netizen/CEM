@@ -1,4 +1,4 @@
-<title>แบบสอบถามร้าน</title>
+<title>แบบสอบถามร้าน CEM</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Mitr:wght@500;600&display=swap">
@@ -21,6 +21,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .wrap { max-width: 680px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px; }
 header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
 header.top .wrap { padding-block: 12px; display: flex; flex-direction: column; gap: 8px; }
+.repo { color: var(--accent); }
 h1 { font-family: var(--display); font-weight: 600; font-size: 22px; margin: 0; text-wrap: balance; }
 .secs { display: flex; gap: 6px; flex-wrap: wrap; }
 .secs a { font-size: 13px; text-decoration: none; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-variant-numeric: tabular-nums; }
@@ -60,7 +61,7 @@ pre.out { white-space: pre-wrap; word-break: break-word; background: var(--surfa
 </style>
 
 <header class="top"><div class="wrap">
-  <h1>แบบสอบถามร้าน</h1>
+  <h1>แบบสอบถามร้าน <span class="repo">· CEM</span></h1>
   <nav class="secs" id="secs" aria-label="หมวดคำถาม"></nav>
 </div></header>
 
@@ -114,7 +115,7 @@ const Q = [
 ];
 
 let A = {};
-try { A = JSON.parse(localStorage.getItem("onb-draft") || "{}") || {}; } catch (e) { A = {}; }
+try { A = JSON.parse(localStorage.getItem("onb-draft-CEM") || "{}") || {}; } catch (e) { A = {}; }
 const get = id => (A[id] ||= {sel: [], other: "", skip: "", top: ""});
 
 const form = document.getElementById("f");
@@ -196,7 +197,7 @@ function refresh() {
     nav.append(el("a", {href: "#s" + (i + 1), class: n === qs.length ? "done" : "", text: `${i + 1} ${name} ${n}/${qs.length}`}));
   });
 }
-function save() { try { localStorage.setItem("onb-draft", JSON.stringify(A)); } catch (e) {} }
+function save() { try { localStorage.setItem("onb-draft-CEM", JSON.stringify(A)); } catch (e) {} }
 
 function summary() {
   return Q.map(q => {
@@ -230,7 +231,7 @@ document.getElementById("send").addEventListener("click", async () => {
   try {
     const d = await db();
     if (!d) { setStatus("ส่งเข้าระบบไม่ได้ในหน้านี้ กด คัดลอกคำตอบ แล้ววางในแชทแทน", true); return; }
-    await d.doc("onboarding/answers").set({answers: JSON.parse(JSON.stringify(A)), text, submittedAt: new Date().toISOString(), form: "07-onboarding v2"});
+    await d.doc("onboarding/answers").set({answers: JSON.parse(JSON.stringify(A)), text, submittedAt: new Date().toISOString(), form: "07-onboarding v2", repo: "CEM"});
     setStatus("ส่งแล้ว · บอก Claude ในแชทว่า \"ตอบแบบสอบถามแล้ว\"");
   } catch (e) {
     setStatus("ส่งไม่สำเร็จ กด คัดลอกคำตอบ แล้ววางในแชทแทน", true);
