@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Brand"; font-weight: 500; src: url("fonts/brand-thai-500-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 500; src: url("fonts/brand-latin-500-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      @font-face { font-family: "Brand"; font-weight: 700; src: url("fonts/brand-thai-700-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 700; src: url("fonts/brand-latin-700-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      :root {
+        --accent: {{ACCENT}};
+        --accent-hi: {{ACCENT_LIGHT}};
+        --ivory: #f7f2ea;
+        --font: "Brand", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0d0b09; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: var(--font); color: var(--ivory); }
+
+      .shot { position: absolute; inset: 0; overflow: hidden; }
+      .shot video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      /* โทนนุ่ม ลดสีลงเล็กน้อย + ขอบมืดบาง */
+      #grade { position: absolute; inset: 0; backdrop-filter: saturate(0.85) contrast(1.04) brightness(0.97); }
+      #vignette { position: absolute; inset: 0; background:
+        radial-gradient(ellipse 90% 75% at 50% 50%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%),
+        linear-gradient(to bottom, rgba(10,8,6,0.5) 0%, rgba(10,8,6,0) 22%, rgba(10,8,6,0) 72%, rgba(10,8,6,0.55) 100%); }
+      #dip { position: absolute; inset: 0; background: #0d0b09; opacity: 0; }
+
+      .hair { width: 220px; height: 2px; background: var(--accent); }
+      em { font-style: normal; color: var(--accent); }
+
+      .hook { position: absolute; left: 80px; right: 80px; top: 170px; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+      .hook .hair { margin-bottom: 26px; }
+      .hk-line { font-size: 84px; font-weight: 500; line-height: 1.35; letter-spacing: 0.04em; text-shadow: 0 2px 24px rgba(0,0,0,0.45); }
+
+      .title { position: absolute; top: 140px; left: 80px; right: 80px; display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; }
+      .title.low { top: 1080px; }
+      .num { font-size: 38px; font-weight: 500; letter-spacing: 0.5em; padding-left: 0.5em; color: var(--accent); }
+      .title .hair { width: 120px; height: 1.5px; }
+      .wd { display: inline-block; }
+      .tt em { background: linear-gradient(100deg, var(--accent) 0%, var(--accent) 40%, #fffaf0 50%, var(--accent) 60%, var(--accent) 100%);
+               background-size: 300% 100%; background-position: 130% 0; -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .tt { font-size: 58px; font-weight: 500; line-height: 1.4; letter-spacing: 0.04em; text-shadow: 0 2px 20px rgba(0,0,0,0.5); }
+
+      .line { position: absolute; left: 60px; right: 60px; bottom: 300px; text-align: center; }
+      .line span { display: inline-block; font-size: 52px; font-weight: 500; line-height: 1.4; letter-spacing: 0.02em; white-space: nowrap;
+                   text-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 0 28px rgba(0,0,0,0.55); }
+
+      #endshade { position: absolute; inset: 0; background: rgba(13,11,9,0.72); }
+      .end { position: absolute; left: 60px; right: 60px; top: 760px; display: flex; flex-direction: column; align-items: center; gap: 34px; text-align: center; }
+      .end-name { font-size: 104px; font-weight: 500; letter-spacing: 0.14em; padding-left: 0.14em; line-height: 1.3; overflow-wrap: anywhere; }
+      .end-sub { font-size: 44px; font-weight: 500; letter-spacing: 0.06em; opacity: 0.85; }
+      .end-cta { font-size: 46px; font-weight: 500; letter-spacing: 0.08em; color: var(--accent-hi); padding-bottom: 12px; border-bottom: 1.5px solid var(--accent); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="{{TOTAL}}" data-width="1080" data-height="1920">
+      <audio id="mix" class="clip" src="{{AUDIO}}" data-start="0" data-duration="{{TOTAL}}" data-track-index="1" data-volume="1"></audio>
+      {{SHOTS}}
+      <div id="grade"></div>
+      <div id="vignette"></div>
+      <div id="dip"></div>
+      {{ELEMENTS}}
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      {{JS}}
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
