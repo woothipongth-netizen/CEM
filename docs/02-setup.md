@@ -45,6 +45,8 @@ repo ใหม่เป็นของคุณ 100% ไม่ผูกกับ
 | `www.googleapis.com` | API ของ Drive |
 | `huggingface.co` | ดาวน์โหลดโมเดลถอดเสียง |
 | `*.hf.co` | ที่เก็บไฟล์โมเดลจริง (ถ้าใส่ wildcard ไม่ได้ ใส่ `cas-server.xethub.hf.co` และ `us.aws.cdn.hf.co`) |
+| `mixkit.co` | ค้นหาเสียงเอฟเฟกต์ (skill `mixkit-sfx`) ไม่บังคับ |
+| `assets.mixkit.co` | ดาวน์โหลดเสียงเอฟเฟกต์จาก Mixkit ไม่บังคับ |
 
 5. บันทึก แล้ว **เปิดแชทใหม่** ให้การตั้งค่ามีผล
 
