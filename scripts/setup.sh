@@ -36,7 +36,7 @@ fi
 rm -rf "$tmp"
 
 echo "== Whisper สำหรับถอดเสียงภาษาไทย"
-pip install -q faster-whisper numpy pillow 2>&1 | grep -v "running pip as the 'root'" || true
+pip install -q faster-whisper numpy pillow librosa 2>&1 | grep -v "running pip as the 'root'" || true
 
 echo "== เช็กความพร้อม"
 npx -y hyperframes doctor 2>&1 | grep -E "FFmpeg|Chrome" || true
