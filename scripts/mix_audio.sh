@@ -12,6 +12,9 @@
 set -euo pipefail
 VO="$1"; BGM="$2"; OUT="$3"; DUR="$4"; WHOOSH="$5"; SPARKLE="${6:-}"
 SFX="$(cd "$(dirname "$0")/.." && pwd)/.agents/skills/media-use/audio/assets/sfx"
+# คลัง SFX ของร้าน (ดึงจาก brand.json sfx_library มาไว้ในเครื่อง): ตั้ง SFX_DIR=<โฟลเดอร์> ไฟล์ที่ชื่อตรงกันจะใช้แทนของในตัว
+#   ใช้ชื่อ whoosh-short.mp3 (เปลี่ยนช่วง) และ sparkle.mp3 (ตอนจบ)
+pick() { if [ -n "${SFX_DIR:-}" ] && [ -f "$SFX_DIR/$1" ]; then echo "$SFX_DIR/$1"; else echo "$SFX/$1"; fi; }
 
 if [ "$BGM" = "none" ]; then
   inputs=(-i "$VO")
@@ -26,13 +29,13 @@ else
   mix="[vo][bgm]"; n=2; idx=2
 fi
 for t in $WHOOSH; do
-  inputs+=(-i "$SFX/whoosh-short.mp3")
+  inputs+=(-i "$(pick whoosh-short.mp3)")
   ms=$(python3 -c "print(int(max(0, $t - 0.3) * 1000))")
   filters+="[$idx:a]aresample=48000,volume=0.35,adelay=${ms}|${ms}[w$idx];"
   mix+="[w$idx]"; n=$((n + 1)); idx=$((idx + 1))
 done
 if [ -n "$SPARKLE" ]; then
-  inputs+=(-i "$SFX/sparkle.mp3")
+  inputs+=(-i "$(pick sparkle.mp3)")
   ms=$(python3 -c "print(int($SPARKLE * 1000 + 300))")
   filters+="[$idx:a]aresample=48000,volume=0.4,adelay=${ms}|${ms}[sp];"
   mix+="[sp]"; n=$((n + 1))
