@@ -9,6 +9,11 @@
 #
 # เสียงเอฟเฟกต์มาจาก skill media-use (Pixabay license ใช้เชิงพาณิชย์ได้)
 # ระดับเพลงตามแนวทาง media-use: ~-18 dB ใต้เสียงพูด (BGM_BED_VOLUME 0.12)
+#
+# ตัวเลือกเพลง (ตั้งเป็นตัวแปรก่อนคำสั่ง):
+#   BGM_LEVEL=low|mid|high  ความดังเพลง (ค่าเริ่ม mid) · low = เพลงเบา ได้ยินเสียงพูดชัดมาก · high = เพลงเด่น (คลิปไม่มีคนพูดเยอะ)
+#   BGM_START=12.5          เริ่มเพลงที่วินาทีไหน (ใช้คู่กับ scripts/beats.py เพื่อให้จุดตัดตรงจังหวะ)
+#   BGM_GAP_BOOST=1         ให้เพลงดังขึ้นชัดในช่วงที่ไม่มีคนพูด (ค่าเริ่ม 1 = เปิด, 0 = ปิด)
 set -euo pipefail
 VO="$1"; BGM="$2"; OUT="$3"; DUR="$4"; WHOOSH="$5"; SPARKLE="${6:-}"
 SFX="$(cd "$(dirname "$0")/.." && pwd)/.agents/skills/media-use/audio/assets/sfx"
@@ -21,11 +26,13 @@ if [ "$BGM" = "none" ]; then
   filters="[0:a]aresample=48000,apad,atrim=0:$DUR[vo];"
   mix="[vo]"; n=1; idx=1
 else
-  inputs=(-i "$VO" -i "$BGM")
   filters="[0:a]aresample=48000,apad,atrim=0:$DUR,asplit=2[vo][key];"
   # เพลงลดลงอัตโนมัติเมื่อเสียงพากย์ดัง (sidechain) แล้วกลับขึ้นช่วงเงียบ ฐานเสียงราว -18 dB ตาม media-use
-  filters+="[1:a]aresample=48000,loudnorm=I=-20,volume=0.5,afade=t=out:st=$(python3 -c "print($DUR - 3)"):d=3[bgmraw];"
-  filters+="[bgmraw][key]sidechaincompress=threshold=0.02:ratio=8:attack=20:release=400[bgm];"
+  case "${BGM_LEVEL:-mid}" in low) BV=0.3;; high) BV=0.8;; *) BV=0.5;; esac
+  if [ "${BGM_GAP_BOOST:-1}" = "1" ]; then RATIO=8; else RATIO=3; fi
+  inputs=(-i "$VO" -ss "${BGM_START:-0}" -i "$BGM")
+  filters+="[1:a]aresample=48000,loudnorm=I=-20,volume=$BV,afade=t=in:d=0.5,afade=t=out:st=$(python3 -c "print($DUR - 3)"):d=3[bgmraw];"
+  filters+="[bgmraw][key]sidechaincompress=threshold=0.02:ratio=$RATIO:attack=20:release=400[bgm];"
   mix="[vo][bgm]"; n=2; idx=2
 fi
 for t in $WHOOSH; do
