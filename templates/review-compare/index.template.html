@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="th" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Brand"; font-weight: 500; src: url("fonts/brand-thai-500-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 500; src: url("fonts/brand-latin-500-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      @font-face { font-family: "Brand"; font-weight: 700; src: url("fonts/brand-thai-700-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 700; src: url("fonts/brand-latin-700-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      @font-face { font-family: "Brand"; font-weight: 800; src: url("fonts/brand-thai-800-normal.woff2"); unicode-range: U+0E01-0E5B, U+200C-200D, U+25CC; }
+      @font-face { font-family: "Brand"; font-weight: 800; src: url("fonts/brand-latin-800-normal.woff2"); unicode-range: U+0000-00FF, U+2000-206F; }
+      :root {
+        --accent: {{ACCENT}};
+        --accent-hi: {{ACCENT_LIGHT}};
+        --accent-dk: {{ACCENT_DARK}};
+        --ink: #17181c;
+        --paper: #ffffff;
+        --font: "Brand", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: var(--font); }
+      em { font-style: normal; color: var(--accent); }
+
+      .shot { position: absolute; inset: 0; overflow: hidden; }
+      .shot video, .cmp video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      #edge { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 74%, rgba(0,0,0,0.4) 100%); }
+
+      /* ช่วงก่อน-หลัง */
+      .cmp { position: absolute; inset: 0; overflow: hidden; background: #000; }
+      .full { position: absolute; inset: 0; overflow: hidden; }
+      .tag { display: inline-block; font-size: 46px; font-weight: 800; padding: 6px 30px 14px; border-radius: 40px; letter-spacing: 0.02em; }
+      .tag-b { background: var(--ink); color: #fff; }
+      .tag-a { background: var(--accent); color: var(--ink); }
+
+      .handle { position: absolute; top: 0; bottom: 0; left: 0; width: 0; }
+      .handle::before { content: ""; position: absolute; top: 0; bottom: 0; left: -3px; width: 6px; background: #fff; box-shadow: 0 0 18px rgba(0,0,0,0.35); }
+      .knob { position: absolute; top: 50%; left: -50px; width: 100px; height: 100px; margin-top: -50px; border-radius: 50%;
+              background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,0.35); }
+      .ar { position: absolute; top: 36px; width: 0; height: 0; border-top: 14px solid transparent; border-bottom: 14px solid transparent; }
+      .ar.l { left: 20px; border-right: 18px solid var(--ink); }
+      .ar.r { right: 20px; border-left: 18px solid var(--ink); }
+      .side { position: absolute; top: 1240px; }
+      .side-l { left: 50px; }
+      .side-r { right: 50px; }
+
+      .stack .half { position: absolute; left: 0; right: 0; height: 50%; overflow: hidden; }
+      .stack .top { top: 0; }
+      .stack .bot { bottom: 0; }
+      .stack .half .tag { position: absolute; left: 40px; }
+      .stack .top .tag { bottom: 40px; }
+      .stack .bot .tag { top: 40px; }
+      .seam { position: absolute; left: 0; right: 0; top: 50%; height: 8px; margin-top: -4px; background: #fff; }
+
+      .sweep { position: absolute; top: 0; bottom: 0; left: 0; width: 40px; background: linear-gradient(90deg, var(--accent-hi), var(--accent)); box-shadow: 0 0 40px var(--accent); }
+      .corner { position: absolute; top: 1240px; left: 50px; }
+      .corner .tag { position: absolute; left: 0; top: 0; white-space: nowrap; }
+      .flip .tag-a { opacity: 0; }
+
+      .result { position: absolute; right: 50px; top: 1370px; display: flex; align-items: center; gap: 16px;
+                font-size: 48px; font-weight: 800; color: var(--ink); background: #fff; padding: 10px 34px 20px 22px;
+                border-radius: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+      .stack .result { top: auto; bottom: 120px; }
+      .r-tick { position: relative; width: 52px; height: 52px; border-radius: 50%; background: var(--accent); margin-top: 8px; }
+      .r-tick::after { content: ""; position: absolute; left: 18px; top: 9px; width: 13px; height: 25px;
+                       border: solid var(--ink); border-width: 0 6px 6px 0; transform: rotate(45deg); }
+
+      /* ประโยคเปิด */
+      .hook { position: absolute; left: 60px; right: 60px; top: 160px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+      .hk-line { overflow: hidden; padding: 10px 0 18px; }
+      .hk-line span { display: inline-block; font-size: 100px; font-weight: 800; line-height: 1.22; color: #fff; text-shadow: 0 4px 30px rgba(0,0,0,0.55); }
+
+      /* หัวข้อการ์ดขาว */
+      .title { position: absolute; top: 150px; left: 60px; right: 60px; display: flex; justify-content: center; }
+      .title.mid { top: 50%; transform: translateY(-50%); }
+      .card { display: inline-flex; align-items: stretch; gap: 22px; background: var(--paper); border-radius: 18px; padding: 16px 36px 24px 20px;
+              box-shadow: 0 10px 34px rgba(0,0,0,0.3); }
+      .card .bar { width: 10px; border-radius: 5px; background: var(--accent); }
+      .card .tx { font-size: 62px; font-weight: 800; color: var(--ink); line-height: 1.3; }
+
+      /* ซับ */
+      .line { position: absolute; left: 50px; right: 50px; bottom: 300px; text-align: center; }
+      .line span { display: inline-block; padding: 14px 32px 22px; border-radius: 16px; background: rgba(23,24,28,0.78);
+                   color: #fff; font-size: 56px; font-weight: 700; line-height: 1.32; white-space: nowrap; }
+
+      /* การ์ดจบ */
+      #endshade { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.7)); }
+      .end { position: absolute; left: 50px; right: 50px; top: 700px; display: flex; flex-direction: column; align-items: center; gap: 30px; text-align: center; }
+      .end-name { font-size: 120px; font-weight: 800; color: #fff; line-height: 1.25; overflow-wrap: anywhere; text-shadow: 0 6px 30px rgba(0,0,0,0.5); }
+      .end-sub { font-size: 50px; font-weight: 500; color: #fff; }
+      .end-cta { font-size: 58px; font-weight: 800; color: var(--ink); background: var(--accent); padding: 16px 54px 26px; border-radius: 60px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="{{TOTAL}}" data-width="1080" data-height="1920">
+      <audio id="mix" class="clip" src="{{AUDIO}}" data-start="0" data-duration="{{TOTAL}}" data-track-index="1" data-volume="1"></audio>
+      {{SHOTS}}
+      <div id="edge"></div>
+      {{ELEMENTS}}
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      {{JS}}
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
