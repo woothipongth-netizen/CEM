@@ -192,6 +192,12 @@ python3 -I .agents/skills/real-sfx/scripts/critique.py <resolved_cues.json> <sfx
 - ดังหรือเบาเกิน: ปรับ `BGM_LEVEL` / `--sfx-trim-db` / `--target-lufs` แล้วมิกซ์ใหม่ (ไม่ต้อง render ภาพใหม่)
 - บอกในข้อความส่งงาน: ระดับเสียงที่วัดได้ + 2–3 จุดที่ให้เจ้าของฟังเอง (Claude ฟังเสียงไม่ได้)
 
+**คลิปไม่มีเสียงพูด (โชว์ผลงานล้วน / รีวิวไม่มีเสียงพากย์):** เพลงเป็นเสียงหลัก ต้อง "ดังพอดี"
+- มิกซ์ด้วย `BGM_LEVEL=high` (ใส่ไฟล์เงียบแทนเสียงพากย์: `ffmpeg -f lavfi -i anullsrc=r=48000:cl=stereo -t <ความยาว> silent.wav`) และ real-sfx ใช้ `--duck` ไม่ใส่ `--voice-safe`
+- วัดคลิปสุดท้าย: ราว −14 LUFS (ยอมได้ −16 ถึง −12) และพีคไม่เกิน −1 dBTP (`ffmpeg -i <คลิป> -af ebur128=peak=true -f null - 2>&1 | grep -E "I:|Peak:" | tail -2`)
+- เบากว่า −16 = เพลงเบาไป คนดูต้องเร่งเสียง · ดังกว่า −12 หรือพีคเกิน = เสี่ยงเสียงแตกบนลำโพงมือถือ
+- SFX ต้องอยู่ใต้เพลง (`--sfx-trim-db -9` เป็นค่าเริ่ม) ไม่ดังกว่าเพลง
+
 ### ขั้น 6: ประกอบและ render (~5–8 นาที)
 เขียน `content.json` (ดู [templates/review-motion/content.example.json](../templates/review-motion/content.example.json)):
 - `hook` ข้อความเปิด 3 วินาทีแรก
