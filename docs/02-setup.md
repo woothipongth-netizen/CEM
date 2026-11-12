@@ -36,7 +36,7 @@ repo ใหม่เป็นของคุณ 100% ไม่ผูกกับ
 1. เปิด https://claude.ai/code ใน **Safari** (แอปบน iPad บางเวอร์ชันหาเมนูนี้ไม่เจอ)
 2. เลือก repo ของคุณ → กดชื่อ **environment** ด้านบน → **Edit** (หรือสร้างใหม่)
 3. **Network access** → เลือก **Limited** (บางเวอร์ชันชื่อ Custom) → ติ๊ก **Allow package managers**
-4. ใส่ใน **Allowed domains**:
+4. ใส่ใน **Allowed domains** (ทุกตัวต้องมี ยกเว้นที่เขียนว่าไม่บังคับ · ใส่ชื่อเต็มทีละตัว ไม่ใช้ `*`):
 
 | โดเมน | ใช้ทำอะไร |
 |---|---|
@@ -44,11 +44,20 @@ repo ใหม่เป็นของคุณ 100% ไม่ผูกกับ
 | `drive.usercontent.google.com` | ดาวน์โหลดไฟล์จาก Drive |
 | `www.googleapis.com` | API ของ Drive |
 | `huggingface.co` | ดาวน์โหลดโมเดลถอดเสียง |
-| `*.hf.co` | ที่เก็บไฟล์โมเดลจริง (ถ้าใส่ wildcard ไม่ได้ ใส่ `cas-server.xethub.hf.co` และ `us.aws.cdn.hf.co`) |
+| `cdn-lfs.huggingface.co` | ที่เก็บไฟล์โมเดลถอดเสียง |
+| `cas-bridge.xethub.hf.co` | ที่เก็บไฟล์โมเดลถอดเสียง |
+| `cas-server.xethub.hf.co` | ที่เก็บไฟล์โมเดลถอดเสียง |
+| `us.aws.cdn.hf.co` | ที่เก็บไฟล์โมเดลถอดเสียง |
 | `mixkit.co` | ค้นหาเสียงเอฟเฟกต์ (skill `mixkit-sfx`) ไม่บังคับ |
 | `assets.mixkit.co` | ดาวน์โหลดเสียงเอฟเฟกต์จาก Mixkit ไม่บังคับ |
 
 5. บันทึก แล้ว **เปิดแชทใหม่** ให้การตั้งค่ามีผล
+
+**ให้ Claude ตั้งให้ (ง่ายกว่า):** เริ่มแชทแรก Claude เช็กเองว่าขาดเว็บไหน แล้วขอเพิ่มทีเดียว คุณแค่กด **อนุญาต** ในหน้าต่างที่ขึ้นมา (มีผลภายในไม่กี่วินาที ไม่ต้องเปิดแชทใหม่)
+ข้อ 1–3 (เลือก Limited + Allow package managers) ยังต้องทำเองครั้งแรกถ้า environment ยังไม่ได้สร้าง · ตั้งเองตามตารางนี้เมื่อ Claude ขอเพิ่มไม่ได้
+
+**คีย์ ElevenLabs (ไม่บังคับ):** Claude ขอตอนสัมภาษณ์ข้อ 7.4 ผ่านฟอร์มปลอดภัย หรือใส่เองที่ **Network secrets**: host `api.elevenlabs.io`, header `xi-api-key`
+ห้ามพิมพ์คีย์ในแชท และห้ามใส่ใน environment variables (เก็บเป็นข้อความธรรมดา)
 
 คู่มือทางการ: https://code.claude.com/docs/en/cloud-environments#network-access
 
