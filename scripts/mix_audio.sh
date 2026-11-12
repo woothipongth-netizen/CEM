@@ -14,6 +14,7 @@
 #   BGM_LEVEL=low|mid|high  ความดังเพลง (ค่าเริ่ม mid) · low = เพลงเบา ได้ยินเสียงพูดชัดมาก · high = เพลงเด่น (คลิปไม่มีคนพูดเยอะ)
 #   BGM_START=12.5          เริ่มเพลงที่วินาทีไหน (ใช้คู่กับ scripts/beats.py เพื่อให้จุดตัดตรงจังหวะ)
 #   BGM_GAP_BOOST=1         ให้เพลงดังขึ้นชัดในช่วงที่ไม่มีคนพูด (ค่าเริ่ม 1 = เปิด, 0 = ปิด)
+#   TARGET_LUFS=-14         ปรับความดังทั้งคลิปให้ได้ค่านี้ (พีคไม่เกิน -1 dBTP) ใช้กับคลิปไม่มีเสียงพูด / ก่อนส่งงาน
 set -euo pipefail
 VO="$1"; BGM="$2"; OUT="$3"; DUR="$4"; WHOOSH="$5"; SPARKLE="${6:-}"
 SFX="$(cd "$(dirname "$0")/.." && pwd)/.agents/skills/media-use/audio/assets/sfx"
@@ -47,6 +48,10 @@ if [ -n "$SPARKLE" ]; then
   filters+="[$idx:a]aresample=48000,volume=0.4,adelay=${ms}|${ms}[sp];"
   mix+="[sp]"; n=$((n + 1))
 fi
-filters+="${mix}amix=inputs=$n:normalize=0,atrim=0:$DUR,alimiter=limit=0.95[o]"
+if [ -n "${TARGET_LUFS:-}" ]; then
+  filters+="${mix}amix=inputs=$n:normalize=0,atrim=0:$DUR,loudnorm=I=${TARGET_LUFS}:TP=-1.5:LRA=11[o]"
+else
+  filters+="${mix}amix=inputs=$n:normalize=0,atrim=0:$DUR,alimiter=limit=0.95[o]"
+fi
 ffmpeg -v error -y "${inputs[@]}" -filter_complex "$filters" -map "[o]" -ar 48000 "$OUT"
 echo "มิกซ์แล้ว: $OUT"
