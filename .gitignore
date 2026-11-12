@@ -4,3 +4,9 @@ __pycache__/
 work/
 templates/vendor/
 *.mov
+# real-sfx: ไฟล์ที่สร้างตอนตั้งค่าในเครื่อง (ห้ามขึ้น repo: มี path ของเครื่อง)
+.agents/skills/real-sfx/library_index.json
+.agents/skills/real-sfx/vendor/node_modules/.package-lock.json
+.agents/skills/real-sfx/vendor/node_modules/uisfx/dist/
+.agents/skills/real-sfx/vendor/node_modules/uisfx/sounds/**/*.ogg
+.agents/skills/real-sfx/vendor/venv/
