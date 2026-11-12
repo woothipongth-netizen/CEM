@@ -158,6 +158,40 @@ SFX_DIR=<คลัง SFX ของร้าน> BGM_LEVEL=mid BGM_START=<วิ
 - เพลงลดเสียงเองตอนมีคนพูด และดังขึ้นช่วงเงียบ (`BGM_GAP_BOOST=0` ให้ดังเท่าๆ กันตลอด)
 - เจ้าของบอก "เพลงดังไป/เบาไป" → เปลี่ยน `BGM_LEVEL` แล้วมิกซ์ใหม่ ไม่ต้อง render ภาพใหม่ (แค่รวมเสียงใหม่กับวิดีโอเดิม)
 
+**5.4 เสียงเอฟเฟกต์แบบละเอียด (skill `real-sfx`) ทำหลัง render** · ใช้แทน whoosh/sparkle ของ `mix_audio.sh` เมื่อมีคลัง SFX ของร้าน
+ขั้น 5.3 มิกซ์แค่เสียงพากย์ + เพลง (ใส่ `""` ในช่องเวลาเปลี่ยนหัวข้อ และไม่ใส่เวลาการ์ดจบ) แล้วหลัง render (ขั้น 6):
+```bash
+cd .agents/skills/real-sfx
+# ครั้งแรกของแชท: โหลดคลัง SFX ของร้านจาก Drive ลง work/sfx-library แล้วชี้ให้ skill รู้จัก (เสียงมีม/ไม่แน่ใจลิขสิทธิ์ ย้ายไป work/sfx-library/_meme ซึ่งถูกข้าม)
+python3 -I scripts/setup.py init --library main=$PWD/../../../work/sfx-library --uisfx --index
+python3 -I scripts/from_hyperframes.py <โฟลเดอร์โปรเจกต์> --video <render.mp4> --out work/<งาน>/sfx/ev.json
+python3 -I scripts/suggest_cues.py work/<งาน>/sfx/ev.json --out work/<งาน>/sfx/cues.json --no-layers
+python3 -I scripts/mix.py work/<งาน>/sfx/cues.json --out work/<งาน>/final_sfx.mp4 --voice-safe --duck --sfx-trim-db -9 --target-lufs -14
+python3 -I scripts/critique.py work/<งาน>/final_sfx_resolved_cues.json work/<งาน>/final_sfx_sfx_track.wav   # ดูจุดที่ควรเช็ก (ไม่ต้องไล่ให้ได้ PASS ด้วยการเปลี่ยนคลัง)
+```
+- (path ในคำสั่งเทียบกับโฟลเดอร์ skill: ใช้ path เต็มของ `work/` จะง่ายกว่า)
+- **คลังที่ใช้ต้องเป็นคลังที่คัดแล้วให้เข้ากับร้าน ห้ามชี้ไปที่คลังรวมทั้งก้อน** (ทดสอบเทียบ: คลังรวมเลือกเสียงทุบ/หมัด/บูมมาใส่ จนไม่เข้ากับงานความงาม เจ้าของชอบคลังคัดมากกว่า แม้คะแนนตรวจตัวเองจะต่ำกว่า)
+  คัดจากคลัง SFX ของร้าน หรือหาใหม่ด้วย `mixkit-sfx` ตามโทนในโปรไฟล์ (บรรทัด "เสียงเอฟเฟกต์" ใน `business-profile.md` จากข้อ 7.3b) ร้านโทนนุ่ม/หรู/ความงาม: whoosh, swoosh, pop, sparkle, ชัตเตอร์, กระดิ่ง ไม่ใส่เสียงทุบ หมัด บูม เสียงมีม
+- ระดับเสียงค่าเริ่ม `--sfx-trim-db -9` (SFX อยู่ใต้เพลง ไม่แย่งเด่น) เจ้าของอยากให้เด่นขึ้น ค่อยลดเป็น `-6` หรือ `-3`
+- **หูเจ้าของสำคัญกว่าคะแนนของ `critique.py`** คะแนนช่วยหาจุดที่ควรเช็กเท่านั้น
+- ได้คลิปใหม่ + ไฟล์ SFX แยก + รายงานว่าวางเสียงอะไรตรงไหน ไม่ต้อง render ภาพใหม่
+- `critique.py` ไม่ผ่าน: แก้เฉพาะเรื่องระดับเสียง/เบส ที่มันบอก แล้วมิกซ์ใหม่ ห้ามแก้ด้วยการเพิ่มเสียงที่ไม่เข้ากับร้าน
+- `--no-layers`: คลังส่วนใหญ่ไม่มีเสียงเบสหนัก (sub drop) ถ้าไม่ใส่ จะหยุดเพราะหาเสียงไม่เจอ
+- ส่งเจ้าของพร้อมบอก 3–4 จุดที่ `critique.py` แนะนำให้ฟังเอง (Claude ฟังเสียงไม่ได้)
+- ไฟล์ตั้งค่าในเครื่อง (`config.json` ที่มี path, `library_index.json`) ห้าม commit
+
+**5.5 ตรวจระดับเสียงอีกรอบ (ทำทุกครั้งที่มีเสียงพากย์)** หลังมิกซ์เสร็จ (ทั้ง `mix_audio.sh` และ real-sfx)
+```bash
+# ความดังของเสียงพูดอย่างเดียว เทียบกับคลิปสุดท้าย (หน่วย LUFS)
+ffmpeg -i vo.mp3 -af ebur128 -f null - 2>&1 | grep "I:" | tail -1
+ffmpeg -i <คลิปสุดท้าย.mp4> -af ebur128 -f null - 2>&1 | grep "I:" | tail -1
+python3 -I .agents/skills/real-sfx/scripts/critique.py <resolved_cues.json> <sfx_track.wav>   # ดูข้อ balance (SFX ทับเสียงพูดไหม)
+```
+- เสียงพูดต้องชัดที่สุดตลอดคลิป: ช่วงที่มีคนพูด เพลง + SFX ต้องเบากว่าเสียงพูดชัดเจน (ข้อ balance ของ `critique.py` ไม่ควรติดลบ / ไม่ฟ้องว่า "bury the voice")
+- คลิปสุดท้ายควรดังราว −14 LUFS (มาตรฐาน TikTok / Reels) เบากว่า −18 = เบาเกิน · ดังกว่า −11 = ดังเกิน
+- ดังหรือเบาเกิน: ปรับ `BGM_LEVEL` / `--sfx-trim-db` / `--target-lufs` แล้วมิกซ์ใหม่ (ไม่ต้อง render ภาพใหม่)
+- บอกในข้อความส่งงาน: ระดับเสียงที่วัดได้ + 2–3 จุดที่ให้เจ้าของฟังเอง (Claude ฟังเสียงไม่ได้)
+
 ### ขั้น 6: ประกอบและ render (~5–8 นาที)
 เขียน `content.json` (ดู [templates/review-motion/content.example.json](../templates/review-motion/content.example.json)):
 - `hook` ข้อความเปิด 3 วินาทีแรก
