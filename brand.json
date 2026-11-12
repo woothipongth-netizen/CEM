@@ -1,5 +1,5 @@
 {
-  "_comment": "ข้อมูลแบรนด์ แก้ไฟล์นี้ไฟล์เดียวให้คลิปเป็นของร้านคุณ | shop_name บังคับใส่ | staff_name = ชื่อเล่นคนพูด (ใช้ช่วยถอดเสียง ไม่ขึ้นป้ายชื่อในคลิป) | footage_folder / music_library / sfx_library = ลิงก์โฟลเดอร์ใน Drive ของเจ้าของเอง (ว่าง = ฟุตเทจขอทุกงาน, SFX ใช้ในตัว) | logo = path รูปโลโก้ (ถ้ามี) | สีใส่เป็นรหัส hex | font = ฟอนต์หลัก (ซับ, ประโยคเปิด) ต้องมีใน @fontsource (npm) | font_hand = ฟอนต์ลายมือ (ไม่บังคับ เช่น sriracha) ใช้กับหัวข้อ ป้าย ข้อความท้ายคลิป ว่าง = ไม่ใช้",
+  "_comment": "ข้อมูลแบรนด์ แก้ไฟล์นี้ไฟล์เดียวให้คลิปเป็นของร้านคุณ | shop_name บังคับใส่ | staff_name = ชื่อเล่นคนพูด (ใช้ช่วยถอดเสียง ไม่ขึ้นป้ายชื่อในคลิป) | footage_folder / music_library / sfx_library = ลิงก์โฟลเดอร์ใน Drive ของเจ้าของเอง (ว่าง = ฟุตเทจขอทุกงาน, SFX ใช้ในตัว) | logo = path รูปโลโก้ (ถ้ามี) | สีใส่เป็นรหัส hex | font = ฟอนต์หลัก (ซับ, ประโยคเปิด) ต้องมีใน @fontsource (npm) | font_hand = ฟอนต์ลายมือ (ไม่บังคับ เช่น sriracha) ใช้กับหัวข้อ ป้าย ข้อความท้ายคลิป ว่าง = ไม่ใช้ | tts = เสียงพากย์ AI (ElevenLabs): voice_id ของเสียงในคลังเจ้าของ, model/stability/similarity ให้ตรงกับแอป",
   "shop_name": "xxxx",
   "staff_name": "xxxx",
   "staff_role": "เจ้าของร้าน",
@@ -14,5 +14,11 @@
   },
   "font": "kanit",
   "font_hand": "",
-  "language": "th"
+  "language": "th",
+  "tts": {
+    "voice_id": "",
+    "model": "eleven_v4",
+    "stability": 0.5,
+    "similarity": 0.75
+  }
 }
